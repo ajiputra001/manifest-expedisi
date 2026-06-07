@@ -427,7 +427,7 @@ function addResi(resi, feedbackId) {
     mainContent.classList.add('screen-flash-red');
     setTimeout(() => mainContent.classList.remove('screen-flash-red'), 600);
 
-    addActivityLog('duplicate', `⚠️ DUPLIKAT terdeteksi: Resi <strong>${resi}</strong> sudah ada!`);
+    addActivityLog('duplicate', `⚠️ TERDEKSI DOBLE RESI ⚠️: Resi <strong>${resi}</strong> sudah ada!`);
     return false;
   }
 
