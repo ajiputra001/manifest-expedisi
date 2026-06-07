@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="Manifest Ekspedisi - Sistem manajemen resi dan pengiriman paket untuk semua ekspedisi Indonesia">
   <title>Manifest Ekspedisi | Dashboard Resi & Pengiriman</title>
-  <link rel="stylesheet" href="style.css?v=5">
+  <link rel="stylesheet" href="style.css?v=7">
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📦</text></svg>">
   <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
 </head>
@@ -38,13 +38,13 @@
           <span class="nav-item-badge" id="badge-total">0</span>
         </div>
         <div class="nav-item" data-page="unprinted" onclick="navigateTo('unprinted')">
-          <span class="nav-item-icon">🖨️</span>
-          <span>Belum Dicetak</span>
+          <span class="nav-item-icon">⏳</span>
+          <span>Belum di Pickup</span>
           <span class="nav-item-badge orange" id="badge-unprinted">0</span>
         </div>
         <div class="nav-item" data-page="printed" onclick="navigateTo('printed')">
           <span class="nav-item-icon">✅</span>
-          <span>Sudah Dicetak</span>
+          <span>Sudah di Pickup</span>
           <span class="nav-item-badge green" id="badge-printed">0</span>
         </div>
         <div class="nav-item" data-page="activity" onclick="navigateTo('activity')">
@@ -270,15 +270,7 @@
               <option value="unprinted">Belum Pickup</option>
             </select>
           </div>
-          <div class="filter-group">
-            <span class="filter-label">Pickup:</span>
-            <select class="filter-select" id="filterPickup" onchange="applyFilters()">
-              <option value="all">Semua</option>
-              <option value="ready">Siap Pickup</option>
-              <option value="picked">Sudah Pickup</option>
-              <option value="pending">Pending</option>
-            </select>
-          </div>
+
           <div class="filter-group">
             <span class="filter-label">Dari:</span>
             <button class="cal-picker-btn" id="filterDateFromBtn" onclick="openCalendar('filterDateFrom')">
@@ -308,7 +300,6 @@
             <div class="table-actions">
               <button class="table-action-btn" onclick="selectAll()">☑️ Pilih Semua</button>
               <button class="table-action-btn" onclick="markSelectedPrinted()">✅ Tandai Pickup</button>
-              <button class="table-action-btn" onclick="markSelectedPickup()">🚚 Tandai Pickup</button>
               <button class="table-action-btn danger" onclick="deleteSelected()">🗑️ Hapus Terpilih</button>
             </div>
           </div>
@@ -324,7 +315,6 @@
                   <th class="sortable" onclick="sortTable('expedisi')">Ekspedisi</th>
                   <th class="sortable" onclick="sortTable('time')">Waktu Scan</th>
                   <th class="sortable" onclick="sortTable('print')">Status Pickup</th>
-                  <th class="sortable" onclick="sortTable('pickup')">Pickup</th>
                   <th>Aksi</th>
                 </tr>
               </thead>
@@ -489,7 +479,6 @@
                   <th>Nomor Resi</th>
                   <th>Waktu Scan</th>
                   <th>Status Pickup</th>
-                  <th>Detail Pickup</th>
                   <th>Aksi</th>
                 </tr>
               </thead>
@@ -631,6 +620,6 @@
     </div>
   </div>
 
-  <script src="app.js?v=5"></script>
+  <script src="app.js?v=7"></script>
 </body>
 </html>
