@@ -866,14 +866,9 @@ function renderAllPackagesTable() {
           </span>
         </td>
         <td>
-          <span class="pickup-badge ${pkg.pickupStatus}" onclick="cyclePickupStatus('${pkg.id}')">
-            ${getPickupLabel(pkg.pickupStatus)}
-          </span>
-        </td>
-        <td>
-        <div class="action-btn-group">
-          <button class="row-action-btn" onclick="togglePrint('${pkg.id}')" title="Toggle Pickup">
-            ${pkg.printed ? '⏳ Batal' : '✅ Tandai'}
+          <div class="action-btn-group">
+            <button class="row-action-btn" onclick="togglePrint('${pkg.id}')" title="Toggle Pickup">
+              ${pkg.printed ? '⏳ Batal' : '✅ Tandai'}
           </button>
             <button class="row-action-btn delete" onclick="confirmDelete('${pkg.id}')" title="Hapus">
               🗑️
@@ -1151,11 +1146,6 @@ function renderExpeditionDetail(key) {
           <span class="status-badge ${pkg.printed ? 'printed' : 'unprinted'}" 
                 onclick="togglePrint('${pkg.id}')">
             ${pkg.printed ? '✅ Sudah di Pickup' : '⏳ Belum di Pickup'}
-          </span>
-        </td>
-        <td>
-          <span class="pickup-badge ${pkg.pickupStatus}" onclick="cyclePickupStatus('${pkg.id}')">
-            ${getPickupLabel(pkg.pickupStatus)}
           </span>
         </td>
         <td>
@@ -1566,14 +1556,13 @@ function downloadCSV(data, filename) {
     return;
   }
 
-  const headers = ['No', 'Nomor Resi', 'Ekspedisi', 'Waktu Scan', 'Status Pickup', 'Detail Pickup'];
+  const headers = ['No', 'Nomor Resi', 'Ekspedisi', 'Waktu Scan', 'Status Pickup'];
   const rows = data.map((pkg, i) => [
     i + 1,
     pkg.resi,
     pkg.expeditionName,
     new Date(pkg.scannedAt).toLocaleString('id-ID'),
-    pkg.printed ? 'Sudah di Pickup' : 'Belum di Pickup',
-    getPickupLabel(pkg.pickupStatus).replace(/[^\w\s]/g, '').trim()
+    pkg.printed ? 'Sudah di Pickup' : 'Belum di Pickup'
   ]);
 
   const csvContent = [headers, ...rows]
