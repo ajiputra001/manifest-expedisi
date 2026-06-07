@@ -62,12 +62,13 @@
     </nav>
 
     <div class="sidebar-footer">
-      <div class="sidebar-footer-info">
+      <div class="sidebar-footer-info" style="position: relative; width: 100%;">
         <div class="sidebar-footer-avatar">OP</div>
         <div class="sidebar-footer-details">
-          <strong>Operator</strong>
-          <span>Manifest System v2.0</span>
+          <strong id="activeUserName">Memuat...</strong>
+          <span id="activeUserRole">Manifest Operator</span>
         </div>
+        <button onclick="logout()" style="position: absolute; right: 0px; top: 10px; background: transparent; border: none; color: var(--accent-red); cursor: pointer; font-size: 16px;" title="Logout">🚪</button>
       </div>
     </div>
   </aside>
