@@ -2159,4 +2159,7 @@ function closeCalendar() {
   calTargetInputId = null;
 }
 
-
+// ============================================
+// INITIALIZATION KICKSTART
+// ============================================
+document.addEventListener('DOMContentLoaded', init);
