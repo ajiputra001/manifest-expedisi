@@ -2,6 +2,7 @@
 // MANIFEST EKSPEDISI - Application Logic
 // ============================================
 
+
 // ============================================
 // EXPEDITION DATABASE
 // ============================================
@@ -270,21 +271,21 @@ const PAGE_SIZE = 20;
 let pendingConfirmAction = null;
 
 // ============================================
-// INIT
+// INITIALIZATION
 // ============================================
 
 function init() {
-  checkAuth();
-  initTheme();
+  updateClock();
+  setInterval(updateClock, 1000);
+  
   loadFromStorage();
+  
+  initTheme();
   populateExpeditionNav();
   populateExpeditionFilter();
   updateAllStats();
-  updateClock();
-  setInterval(updateClock, 1000);
   renderChart();
   renderActivity();
-  updateUserInfo();
 
   // Focus scan input
   setTimeout(() => {
@@ -548,6 +549,8 @@ function processBulk(textarea, feedbackId) {
 // SCAN MODE
 // ============================================
 
+let html5QrcodeScanner = null;
+
 function setScanMode(mode) {
   scanMode = mode;
   const btns = document.querySelectorAll('.scan-mode-btn');
@@ -559,14 +562,77 @@ function setScanMode(mode) {
   // Toggle visibility for dashboard scan
   const singleMode = document.getElementById('singleScanMode');
   const bulkMode = document.getElementById('bulkScanMode');
+  const cameraMode = document.getElementById('cameraScanMode');
+  
   if (singleMode) singleMode.style.display = mode === 'single' ? 'flex' : 'none';
   if (bulkMode) bulkMode.style.display = mode === 'bulk' ? 'block' : 'none';
+  if (cameraMode) cameraMode.style.display = mode === 'camera' ? 'block' : 'none';
 
   // Toggle visibility for focus scan
   const singleFocus = document.getElementById('singleScanModeFocus');
   const bulkFocus = document.getElementById('bulkScanModeFocus');
+  const cameraFocus = document.getElementById('cameraScanModeFocus'); // Optional future
+  
   if (singleFocus) singleFocus.style.display = mode === 'single' ? 'flex' : 'none';
   if (bulkFocus) bulkFocus.style.display = mode === 'bulk' ? 'block' : 'none';
+
+  if (html5QrcodeScanner && mode !== 'camera') {
+    html5QrcodeScanner.clear().catch(error => console.error("Failed to clear scanner", error));
+    html5QrcodeScanner = null;
+  }
+
+  if (mode === 'camera') {
+    startCameraScanner();
+  }
+}
+
+function startCameraScanner() {
+  if (!html5QrcodeScanner) {
+    html5QrcodeScanner = new Html5QrcodeScanner(
+      "reader",
+      { fps: 10, qrbox: { width: 250, height: 100 } },
+      /* verbose= */ false
+    );
+    html5QrcodeScanner.render(onScanSuccess, onScanFailure);
+  }
+}
+
+function onScanSuccess(decodedText, decodedResult) {
+  playSound('beep');
+  
+  const input = document.getElementById('resiInput');
+  if (input) {
+    input.value = decodedText;
+    processResi(); // Auto enter
+  }
+  
+  // Pause scanner to prevent rapid firing
+  if (html5QrcodeScanner) html5QrcodeScanner.pause();
+  
+  // Resume after 2 seconds
+  setTimeout(() => {
+    if (html5QrcodeScanner) html5QrcodeScanner.resume();
+  }, 2000);
+}
+
+function onScanFailure(error) {
+  // Ignore
+}
+
+// ============================================
+// FULLSCREEN
+// ============================================
+
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(err => {
+      console.log(`Error attempting to enable fullscreen: ${err.message}`);
+    });
+  } else {
+    if (document.exitFullscreen) {
+      document.exitFullscreen();
+    }
+  }
 }
 
 // ============================================
@@ -2093,157 +2159,4 @@ function closeCalendar() {
   calTargetInputId = null;
 }
 
-// ============================================
-// AUTHENTICATION SYSTEM
-// ============================================
-let usersDB = JSON.parse(localStorage.getItem('usersDB')) || [];
-let currentUser = JSON.parse(localStorage.getItem('currentUser')) || null;
 
-function checkAuth() {
-  const path = window.location.pathname;
-  const isLoginPage = path.includes('login.html');
-  const isAdminPage = path.includes('admin.html');
-  
-  if (!currentUser && !isLoginPage && !isAdminPage) {
-    window.location.href = 'login.html';
-  } else if (currentUser && isLoginPage) {
-    window.location.href = 'index.html';
-  }
-  
-  if (isAdminPage) {
-    renderAdminTable();
-  }
-}
-
-function handleRegister() {
-  const name = document.getElementById('regName').value;
-  const username = document.getElementById('regUsername').value;
-  const password = document.getElementById('regPassword').value;
-  
-  if (!name || !username || !password) {
-    showToast('warning', 'Perhatian', 'Semua kolom wajib diisi');
-    return;
-  }
-  
-  if (usersDB.find(u => u.username === username)) {
-    showToast('error', 'Error', 'Username sudah terdaftar');
-    return;
-  }
-  
-  usersDB.push({ name, username, password, status: 'pending' });
-  localStorage.setItem('usersDB', JSON.stringify(usersDB));
-  
-  showToast('success', 'Berhasil', 'Registrasi sukses! Menunggu approval Developer.');
-  toggleAuthView('login');
-}
-
-function handleLogin() {
-  const username = document.getElementById('loginUsername').value;
-  const password = document.getElementById('loginPassword').value;
-  
-  // Developer Master Login
-  if (username === 'AJIPUTRA-TECH' && password === 'admin123') {
-    currentUser = { name: 'AJIPUTRA-TECH', username: 'admin', role: 'developer', status: 'approved' };
-    localStorage.setItem('currentUser', JSON.stringify(currentUser));
-    window.location.href = 'admin.html';
-    return;
-  }
-  
-  const user = usersDB.find(u => u.username === username && u.password === password);
-  if (!user) {
-    showToast('error', 'Login Gagal', 'Username atau password salah');
-    return;
-  }
-  
-  if (user.status !== 'approved') {
-    showToast('warning', 'Akses Ditolak', 'Akun Anda belum disetujui oleh Developer');
-    return;
-  }
-  
-  currentUser = user;
-  localStorage.setItem('currentUser', JSON.stringify(currentUser));
-  window.location.href = 'index.html';
-}
-
-function toggleAuthView(view) {
-  if (view === 'register') {
-    document.getElementById('loginView').style.display = 'none';
-    document.getElementById('registerView').style.display = 'block';
-  } else {
-    document.getElementById('loginView').style.display = 'block';
-    document.getElementById('registerView').style.display = 'none';
-  }
-}
-
-function logout() {
-  localStorage.removeItem('currentUser');
-  window.location.href = 'login.html';
-}
-
-function renderAdminTable() {
-  const tbody = document.getElementById('adminTableBody');
-  if (!tbody) return;
-  
-  if (usersDB.length === 0) {
-    tbody.innerHTML = '<tr><td colspan="4" class="empty-state">Belum ada pengguna terdaftar</td></tr>';
-    return;
-  }
-  
-  tbody.innerHTML = usersDB.map(user => `
-    <tr>
-      <td>${user.name}</td>
-      <td><strong>${user.username}</strong></td>
-      <td>
-        <span class="status-badge ${user.status === 'approved' ? 'status-approved' : 'status-pending'}">
-          ${user.status === 'approved' ? 'Disetujui' : 'Menunggu'}
-        </span>
-      </td>
-      <td>
-        ${user.status === 'pending' ? `
-          <button class="btn-approve" onclick="approveUser('${user.username}')">Setujui</button>
-          <button class="btn-reject" onclick="rejectUser('${user.username}')">Tolak</button>
-        ` : `<span style="color:var(--text-muted);font-size:12px;">✅ Selesai</span>`}
-      </td>
-    </tr>
-  `).join('');
-}
-
-function approveUser(username) {
-  const user = usersDB.find(u => u.username === username);
-  if (user) {
-    user.status = 'approved';
-    localStorage.setItem('usersDB', JSON.stringify(usersDB));
-    renderAdminTable();
-    showToast('success', 'Berhasil', `Akses ${username} disetujui`);
-  }
-}
-
-function rejectUser(username) {
-  usersDB = usersDB.filter(u => u.username !== username);
-  localStorage.setItem('usersDB', JSON.stringify(usersDB));
-  renderAdminTable();
-  showToast('info', 'Info', `Akses ${username} ditolak/dihapus`);
-}
-
-function updateUserInfo() {
-  const el = document.getElementById('activeUserName');
-  const roleEl = document.getElementById('activeUserRole');
-  if (el && currentUser) {
-    el.textContent = currentUser.name;
-    if (roleEl) {
-      if (currentUser.role === 'developer') {
-        roleEl.textContent = 'Developer (Admin)';
-        roleEl.style.color = 'var(--accent-purple)';
-        roleEl.style.fontWeight = 'bold';
-      } else {
-        roleEl.textContent = 'Manifest Operator';
-      }
-    }
-  }
-}
-
-// ============================================
-// INITIALIZE
-// ============================================
-
-document.addEventListener('DOMContentLoaded', init);
