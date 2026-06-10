@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>RESI CENTER - Enterprise Cloud</title>
+    
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://unpkg.com/html5-qrcode" type="text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#1e3a8a">
+    
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body class="bg-blue-50 text-blue-950 font-sans overflow-hidden transition-colors duration-300" id="bodyTheme">
+
+    <div id="loginContainer" class="fixed inset-0 z-[100] flex items-center justify-center bg-blue-950/95 backdrop-blur-sm">
+        <div class="bg-white w-full max-w-sm p-8 rounded-3xl shadow-2xl relative fade-in theme-card border border-blue-100 theme-border mx-4">
+            <div class="text-center mb-6">
+                <i class="fa-solid fa-satellite-dish text-5xl text-blue-600 mb-3 drop-shadow-md"></i>
+                <h2 class="text-2xl font-black text-blue-900 theme-text">RESI CENTER</h2>
+                <p class="text-xs text-blue-500 font-bold uppercase tracking-widest mt-1">Enterprise Cloud</p>
+            </div>
+            
+            <div class="flex mb-6 bg-blue-50/50 p-1 rounded-xl theme-bg-muted border border-blue-100 theme-border">
+                <button id="tabLogin" type="button" onclick="switchAuthMode('login')" class="flex-1 py-2 text-sm font-bold bg-blue-600 text-white rounded-lg shadow-md transition-all">Masuk</button>
+                <button id="tabRegister" type="button" onclick="switchAuthMode('register')" class="flex-1 py-2 text-sm font-bold text-blue-400 hover:text-blue-600 transition-all theme-text-muted">Daftar</button>
+            </div>
+
+            <form id="authForm" class="space-y-4" novalidate>
+                <div class="relative">
+                    <i class="fa-solid fa-user absolute left-4 top-1/2 transform -translate-y-1/2 text-blue-400"></i>
+                    <input type="text" id="authUsername" placeholder="Username (tanpa spasi)" class="w-full pl-11 pr-4 py-3 bg-white border border-blue-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm font-bold text-blue-900 theme-input transition-shadow" required>
+                </div>
+                <div class="relative">
+                    <i class="fa-solid fa-lock absolute left-4 top-1/2 transform -translate-y-1/2 text-blue-400"></i>
+                    <input type="password" id="authPassword" placeholder="Password (Min. 6 Karakter)" class="w-full pl-11 pr-4 py-3 bg-white border border-blue-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500 text-sm text-blue-900 theme-input transition-shadow" required>
+                </div>
+                <button type="submit" id="btnSubmitAuth" class="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 transition-all shadow-lg hover:shadow-xl mt-4">
+                    MASUK SEKARANG
+                </button>
+            </form>
+            <p class="text-center text-[10px] text-blue-400 mt-5 font-bold uppercase tracking-wide">Daftar username "admin" untuk Master Akses.</p>
+        </div>
+    </div>
+
+    <div id="appContainer" class="flex h-screen w-full hidden">
+        
+        <aside id="sidebar" class="bg-white w-72 shadow-2xl flex flex-col h-full fixed md:relative inset-y-0 left-0 z-50 transform -translate-x-full md:translate-x-0 transition-transform duration-300 theme-card border-r theme-border">
+            <div class="p-5 border-b theme-border flex justify-between items-center bg-gradient-to-r from-blue-900 to-blue-800">
+                <h1 class="text-lg font-black text-white tracking-wide flex items-center drop-shadow-md"><i class="fa-solid fa-satellite-dish mr-2"></i> RESI CENTER</h1>
+                <button id="closeSidebar" class="md:hidden text-blue-200 hover:text-white p-2 rounded-lg bg-white/10 backdrop-blur-sm"><i class="fa-solid fa-times text-xl"></i></button>
+            </div>
+            
+            <div class="overflow-y-auto flex-1 py-4 px-3 space-y-1 hide-scrollbar">
+                <div id="adminMenu" class="hidden mb-4 border-b theme-border pb-4">
+                    <p class="px-3 text-xs font-bold text-amber-500 uppercase tracking-wider mb-2"><i class="fa-solid fa-crown mr-1"></i> Master Admin</p>
+                    <button onclick="appRouter('users')" class="w-full flex items-center p-3 rounded-xl hover:bg-amber-50 text-amber-600 font-bold transition-all text-left">
+                        <i class="fa-solid fa-users-gear w-6 text-center"></i> Manajemen Karyawan
+                    </button>
+                </div>
+
+                <p class="px-3 text-xs font-bold text-blue-400 uppercase tracking-wider mb-2 mt-2">Menu Utama</p>
+                <button onclick="appRouter('dashboard')" class="w-full flex items-center p-3 rounded-xl hover:bg-blue-50 text-blue-700 font-bold transition-all text-left active-nav theme-sidebar-link">
+                    <i class="fa-solid fa-chart-pie w-6 text-center"></i> Dashboard Inti
+                </button>
+
+                <p class="px-3 text-xs font-bold text-blue-400 uppercase tracking-wider mt-6 mb-2">Ekspedisi</p>
+                
+                <div class="sidebar-item mb-1">
+                    <div class="flex items-center justify-between p-1 rounded-xl hover:bg-blue-50 theme-sidebar-link transition-colors cursor-pointer">
+                        <button onclick="appRouter('expedition', 'spx', 'Shopee Express', 'all')" class="flex-1 flex items-center text-left text-sm font-bold py-2 px-2 theme-text">
+                            <i class="fa-solid fa-box w-6 text-orange-500 text-center"></i> Shopee Express
+                        </button>
+                        <span id="badge-spx-total" class="badge-sidebar-total text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
+                        <button onclick="toggleSidebarMenu('spx')" class="p-2 text-blue-400 hover:text-blue-600"><i class="fa-solid fa-chevron-down text-xs transition-transform duration-300" id="chevron-spx"></i></button>
+                    </div>
+                    <div id="sub-spx" class="hidden flex-col pl-10 pr-2 py-1 space-y-1 border-l-2 border-blue-50 ml-5 theme-border">
+                        <button onclick="appRouter('expedition', 'spx', 'Shopee Express', 'Delivered')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Terkirim</span><span id="badge-spx-delivered" class="badge-sidebar-delivered text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                        <button onclick="appRouter('expedition', 'spx', 'Shopee Express', 'Proses')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Proses</span><span id="badge-spx-process" class="badge-sidebar-process text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                        <button onclick="appRouter('expedition', 'spx', 'Shopee Express', 'Retur')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Retur</span><span id="badge-spx-problem" class="badge-sidebar-problem text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                    </div>
+                </div>
+
+                <div class="sidebar-item mb-1">
+                    <div class="flex items-center justify-between p-1 rounded-xl hover:bg-blue-50 theme-sidebar-link transition-colors cursor-pointer">
+                        <button onclick="appRouter('expedition', 'jnt', 'J&T Express', 'all')" class="flex-1 flex items-center text-left text-sm font-bold py-2 px-2 theme-text">
+                            <i class="fa-solid fa-box w-6 text-red-500 text-center"></i> J&T Express
+                        </button>
+                        <span id="badge-jnt-total" class="badge-sidebar-total text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
+                        <button onclick="toggleSidebarMenu('jnt')" class="p-2 text-blue-400 hover:text-blue-600"><i class="fa-solid fa-chevron-down text-xs transition-transform duration-300" id="chevron-jnt"></i></button>
+                    </div>
+                    <div id="sub-jnt" class="hidden flex-col pl-10 pr-2 py-1 space-y-1 border-l-2 border-blue-50 ml-5 theme-border">
+                        <button onclick="appRouter('expedition', 'jnt', 'J&T Express', 'Delivered')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Terkirim</span><span id="badge-jnt-delivered" class="badge-sidebar-delivered text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                        <button onclick="appRouter('expedition', 'jnt', 'J&T Express', 'Proses')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Proses</span><span id="badge-jnt-process" class="badge-sidebar-process text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                        <button onclick="appRouter('expedition', 'jnt', 'J&T Express', 'Retur')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Retur</span><span id="badge-jnt-problem" class="badge-sidebar-problem text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                    </div>
+                </div>
+
+                <div class="sidebar-item mb-1">
+                    <div class="flex items-center justify-between p-1 rounded-xl hover:bg-blue-50 theme-sidebar-link transition-colors cursor-pointer">
+                        <button onclick="appRouter('expedition', 'jnt_cargo', 'J&T Cargo', 'all')" class="flex-1 flex items-center text-left text-sm font-bold py-2 px-2 theme-text">
+                            <i class="fa-solid fa-truck w-6 text-red-600 text-center"></i> J&T Cargo
+                        </button>
+                        <span id="badge-jnt_cargo-total" class="badge-sidebar-total text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
+                        <button onclick="toggleSidebarMenu('jnt_cargo')" class="p-2 text-blue-400 hover:text-blue-600"><i class="fa-solid fa-chevron-down text-xs transition-transform duration-300" id="chevron-jnt_cargo"></i></button>
+                    </div>
+                    <div id="sub-jnt_cargo" class="hidden flex-col pl-10 pr-2 py-1 space-y-1 border-l-2 border-blue-50 ml-5 theme-border">
+                        <button onclick="appRouter('expedition', 'jnt_cargo', 'J&T Cargo', 'Delivered')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Terkirim</span><span id="badge-jnt_cargo-delivered" class="badge-sidebar-delivered text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                        <button onclick="appRouter('expedition', 'jnt_cargo', 'J&T Cargo', 'Proses')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Proses</span><span id="badge-jnt_cargo-process" class="badge-sidebar-process text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                        <button onclick="appRouter('expedition', 'jnt_cargo', 'J&T Cargo', 'Retur')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Retur</span><span id="badge-jnt_cargo-problem" class="badge-sidebar-problem text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                    </div>
+                </div>
+
+                <div class="sidebar-item mb-1">
+                    <div class="flex items-center justify-between p-1 rounded-xl hover:bg-blue-50 theme-sidebar-link transition-colors cursor-pointer">
+                        <button onclick="appRouter('expedition', 'sicepat', 'SiCepat Ekspres', 'all')" class="flex-1 flex items-center text-left text-sm font-bold py-2 px-2 theme-text">
+                            <i class="fa-solid fa-bolt w-6 text-red-500 text-center"></i> SiCepat
+                        </button>
+                        <span id="badge-sicepat-total" class="badge-sidebar-total text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
+                        <button onclick="toggleSidebarMenu('sicepat')" class="p-2 text-blue-400 hover:text-blue-600"><i class="fa-solid fa-chevron-down text-xs transition-transform duration-300" id="chevron-sicepat"></i></button>
+                    </div>
+                    <div id="sub-sicepat" class="hidden flex-col pl-10 pr-2 py-1 space-y-1 border-l-2 border-blue-50 ml-5 theme-border">
+                        <button onclick="appRouter('expedition', 'sicepat', 'SiCepat Ekspres', 'Delivered')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Terkirim</span><span id="badge-sicepat-delivered" class="badge-sidebar-delivered text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                        <button onclick="appRouter('expedition', 'sicepat', 'SiCepat Ekspres', 'Proses')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Proses</span><span id="badge-sicepat-process" class="badge-sidebar-process text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                        <button onclick="appRouter('expedition', 'sicepat', 'SiCepat Ekspres', 'Retur')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Retur</span><span id="badge-sicepat-problem" class="badge-sidebar-problem text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                    </div>
+                </div>
+
+                <div class="sidebar-item mb-1">
+                    <div class="flex items-center justify-between p-1 rounded-xl hover:bg-blue-50 theme-sidebar-link transition-colors cursor-pointer">
+                        <button onclick="appRouter('expedition', 'jne', 'JNE Express', 'all')" class="flex-1 flex items-center text-left text-sm font-bold py-2 px-2 theme-text">
+                            <i class="fa-solid fa-plane-departure w-6 text-blue-600 text-center"></i> JNE Express
+                        </button>
+                        <span id="badge-jne-total" class="badge-sidebar-total text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
+                        <button onclick="toggleSidebarMenu('jne')" class="p-2 text-blue-400 hover:text-blue-600"><i class="fa-solid fa-chevron-down text-xs transition-transform duration-300" id="chevron-jne"></i></button>
+                    </div>
+                    <div id="sub-jne" class="hidden flex-col pl-10 pr-2 py-1 space-y-1 border-l-2 border-blue-50 ml-5 theme-border">
+                        <button onclick="appRouter('expedition', 'jne', 'JNE Express', 'Delivered')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Terkirim</span><span id="badge-jne-delivered" class="badge-sidebar-delivered text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                        <button onclick="appRouter('expedition', 'jne', 'JNE Express', 'Proses')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Proses</span><span id="badge-jne-process" class="badge-sidebar-process text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                        <button onclick="appRouter('expedition', 'jne', 'JNE Express', 'Retur')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Retur</span><span id="badge-jne-problem" class="badge-sidebar-problem text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                    </div>
+                </div>
+
+                <div class="sidebar-item mb-1">
+                    <div class="flex items-center justify-between p-1 rounded-xl hover:bg-blue-50 theme-sidebar-link transition-colors cursor-pointer">
+                        <button onclick="appRouter('expedition', 'tiki', 'TIKI', 'all')" class="flex-1 flex items-center text-left text-sm font-bold py-2 px-2 theme-text">
+                            <i class="fa-solid fa-globe w-6 text-blue-400 text-center"></i> TIKI
+                        </button>
+                        <span id="badge-tiki-total" class="badge-sidebar-total text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
+                        <button onclick="toggleSidebarMenu('tiki')" class="p-2 text-blue-400 hover:text-blue-600"><i class="fa-solid fa-chevron-down text-xs transition-transform duration-300" id="chevron-tiki"></i></button>
+                    </div>
+                    <div id="sub-tiki" class="hidden flex-col pl-10 pr-2 py-1 space-y-1 border-l-2 border-blue-50 ml-5 theme-border">
+                        <button onclick="appRouter('expedition', 'tiki', 'TIKI', 'Delivered')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Terkirim</span><span id="badge-tiki-delivered" class="badge-sidebar-delivered text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                        <button onclick="appRouter('expedition', 'tiki', 'TIKI', 'Proses')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Proses</span><span id="badge-tiki-process" class="badge-sidebar-process text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                        <button onclick="appRouter('expedition', 'tiki', 'TIKI', 'Retur')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Retur</span><span id="badge-tiki-problem" class="badge-sidebar-problem text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                    </div>
+                </div>
+
+                <div class="sidebar-item mb-1">
+                    <div class="flex items-center justify-between p-1 rounded-xl hover:bg-blue-50 theme-sidebar-link transition-colors cursor-pointer">
+                        <button onclick="appRouter('expedition', 'pos', 'POS Indonesia', 'all')" class="flex-1 flex items-center text-left text-sm font-bold py-2 px-2 theme-text">
+                            <i class="fa-solid fa-envelopes-bulk w-6 text-orange-400 text-center"></i> POS Indonesia
+                        </button>
+                        <span id="badge-pos-total" class="badge-sidebar-total text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
+                        <button onclick="toggleSidebarMenu('pos')" class="p-2 text-blue-400 hover:text-blue-600"><i class="fa-solid fa-chevron-down text-xs transition-transform duration-300" id="chevron-pos"></i></button>
+                    </div>
+                    <div id="sub-pos" class="hidden flex-col pl-10 pr-2 py-1 space-y-1 border-l-2 border-blue-50 ml-5 theme-border">
+                        <button onclick="appRouter('expedition', 'pos', 'POS Indonesia', 'Delivered')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Terkirim</span><span id="badge-pos-delivered" class="badge-sidebar-delivered text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                        <button onclick="appRouter('expedition', 'pos', 'POS Indonesia', 'Proses')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Proses</span><span id="badge-pos-process" class="badge-sidebar-process text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                        <button onclick="appRouter('expedition', 'pos', 'POS Indonesia', 'Retur')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Retur</span><span id="badge-pos-problem" class="badge-sidebar-problem text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                    </div>
+                </div>
+
+                <div class="sidebar-item mb-1">
+                    <div class="flex items-center justify-between p-1 rounded-xl hover:bg-blue-50 theme-sidebar-link transition-colors cursor-pointer">
+                        <button onclick="appRouter('expedition', 'anteraja', 'AnterAja', 'all')" class="flex-1 flex items-center text-left text-sm font-bold py-2 px-2 theme-text">
+                            <i class="fa-solid fa-people-carry-box w-6 text-pink-500 text-center"></i> AnterAja
+                        </button>
+                        <span id="badge-anteraja-total" class="badge-sidebar-total text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
+                        <button onclick="toggleSidebarMenu('anteraja')" class="p-2 text-blue-400 hover:text-blue-600"><i class="fa-solid fa-chevron-down text-xs transition-transform duration-300" id="chevron-anteraja"></i></button>
+                    </div>
+                    <div id="sub-anteraja" class="hidden flex-col pl-10 pr-2 py-1 space-y-1 border-l-2 border-blue-50 ml-5 theme-border">
+                        <button onclick="appRouter('expedition', 'anteraja', 'AnterAja', 'Delivered')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Terkirim</span><span id="badge-anteraja-delivered" class="badge-sidebar-delivered text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                        <button onclick="appRouter('expedition', 'anteraja', 'AnterAja', 'Proses')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Proses</span><span id="badge-anteraja-process" class="badge-sidebar-process text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                        <button onclick="appRouter('expedition', 'anteraja', 'AnterAja', 'Retur')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Retur</span><span id="badge-anteraja-problem" class="badge-sidebar-problem text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                    </div>
+                </div>
+
+                <div class="sidebar-item mb-1">
+                    <div class="flex items-center justify-between p-1 rounded-xl hover:bg-blue-50 theme-sidebar-link transition-colors cursor-pointer">
+                        <button onclick="appRouter('expedition', 'ninja', 'Ninja Xpress', 'all')" class="flex-1 flex items-center text-left text-sm font-bold py-2 px-2 theme-text">
+                            <i class="fa-solid fa-user-ninja w-6 text-red-700 text-center"></i> Ninja Xpress
+                        </button>
+                        <span id="badge-ninja-total" class="badge-sidebar-total text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
+                        <button onclick="toggleSidebarMenu('ninja')" class="p-2 text-blue-400 hover:text-blue-600"><i class="fa-solid fa-chevron-down text-xs transition-transform duration-300" id="chevron-ninja"></i></button>
+                    </div>
+                    <div id="sub-ninja" class="hidden flex-col pl-10 pr-2 py-1 space-y-1 border-l-2 border-blue-50 ml-5 theme-border">
+                        <button onclick="appRouter('expedition', 'ninja', 'Ninja Xpress', 'Delivered')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Terkirim</span><span id="badge-ninja-delivered" class="badge-sidebar-delivered text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                        <button onclick="appRouter('expedition', 'ninja', 'Ninja Xpress', 'Proses')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Proses</span><span id="badge-ninja-process" class="badge-sidebar-process text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                        <button onclick="appRouter('expedition', 'ninja', 'Ninja Xpress', 'Retur')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Retur</span><span id="badge-ninja-problem" class="badge-sidebar-problem text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                    </div>
+                </div>
+
+                <div class="sidebar-item mb-1">
+                    <div class="flex items-center justify-between p-1 rounded-xl hover:bg-blue-50 theme-sidebar-link transition-colors cursor-pointer">
+                        <button onclick="appRouter('expedition', 'lion', 'Lion Parcel', 'all')" class="flex-1 flex items-center text-left text-sm font-bold py-2 px-2 theme-text">
+                            <i class="fa-solid fa-cat w-6 text-red-600 text-center"></i> Lion Parcel
+                        </button>
+                        <span id="badge-lion-total" class="badge-sidebar-total text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
+                        <button onclick="toggleSidebarMenu('lion')" class="p-2 text-blue-400 hover:text-blue-600"><i class="fa-solid fa-chevron-down text-xs transition-transform duration-300" id="chevron-lion"></i></button>
+                    </div>
+                    <div id="sub-lion" class="hidden flex-col pl-10 pr-2 py-1 space-y-1 border-l-2 border-blue-50 ml-5 theme-border">
+                        <button onclick="appRouter('expedition', 'lion', 'Lion Parcel', 'Delivered')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Terkirim</span><span id="badge-lion-delivered" class="badge-sidebar-delivered text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                        <button onclick="appRouter('expedition', 'lion', 'Lion Parcel', 'Proses')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Proses</span><span id="badge-lion-process" class="badge-sidebar-process text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                        <button onclick="appRouter('expedition', 'lion', 'Lion Parcel', 'Retur')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Retur</span><span id="badge-lion-problem" class="badge-sidebar-problem text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                    </div>
+                </div>
+
+                <div class="sidebar-item mb-1">
+                    <div class="flex items-center justify-between p-1 rounded-xl hover:bg-blue-50 theme-sidebar-link transition-colors cursor-pointer">
+                        <button onclick="appRouter('expedition', 'ide', 'ID Express', 'all')" class="flex-1 flex items-center text-left text-sm font-bold py-2 px-2 theme-text">
+                            <i class="fa-solid fa-truck-fast w-6 text-red-500 text-center"></i> ID Express
+                        </button>
+                        <span id="badge-ide-total" class="badge-sidebar-total text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
+                        <button onclick="toggleSidebarMenu('ide')" class="p-2 text-blue-400 hover:text-blue-600"><i class="fa-solid fa-chevron-down text-xs transition-transform duration-300" id="chevron-ide"></i></button>
+                    </div>
+                    <div id="sub-ide" class="hidden flex-col pl-10 pr-2 py-1 space-y-1 border-l-2 border-blue-50 ml-5 theme-border">
+                        <button onclick="appRouter('expedition', 'ide', 'ID Express', 'Delivered')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Terkirim</span><span id="badge-ide-delivered" class="badge-sidebar-delivered text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                        <button onclick="appRouter('expedition', 'ide', 'ID Express', 'Proses')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Proses</span><span id="badge-ide-process" class="badge-sidebar-process text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                        <button onclick="appRouter('expedition', 'ide', 'ID Express', 'Retur')" class="flex justify-between items-center text-left text-xs py-2 px-3 rounded-lg text-slate-500 font-bold hover:bg-blue-50 theme-text-muted"><span>Retur</span><span id="badge-ide-problem" class="badge-sidebar-problem text-[9px] px-1.5 py-0.5 rounded-full hidden">0</span></button>
+                    </div>
+                </div>
+
+            </div>
+        </aside>
+
+        <div id="sidebarOverlay" class="fixed inset-0 bg-blue-950/60 z-40 hidden backdrop-blur-sm transition-opacity"></div>
+
+        <div class="flex-1 flex flex-col h-full overflow-hidden w-full relative">
+            
+            <nav class="bg-white shadow-sm p-4 flex justify-between items-center z-10 theme-nav border-b theme-border w-full">
+                <div class="flex items-center gap-4">
+                    <button id="openSidebar" class="md:hidden text-2xl text-blue-800 theme-text hover:text-blue-600 transition-colors"><i class="fa-solid fa-bars"></i></button>
+                    <h2 id="topNavTitle" class="text-xl md:text-2xl font-black text-blue-800 theme-text truncate">Dashboard Analytics</h2>
+                </div>
+                
+                <div class="flex items-center gap-3">
+                    <button id="themeToggle" class="bg-blue-50 text-blue-800 px-3 py-2.5 rounded-xl hover:bg-blue-100 transition-all theme-btn border border-blue-100 shadow-sm">
+                        <i class="fa-solid fa-moon"></i>
+                    </button>
+
+                    <div class="relative group">
+                        <button class="flex items-center gap-2 bg-blue-100 text-blue-800 px-3 py-2.5 rounded-xl hover:bg-blue-200 transition-all theme-btn border border-blue-200 shadow-sm">
+                            <i class="fa-solid fa-user-circle"></i> <span id="navUsername" class="text-sm font-bold capitalize hidden sm:inline">User</span>
+                        </button>
+                        <div class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl border border-blue-100 hidden group-hover:block theme-card overflow-hidden z-50">
+                            <div class="px-4 py-2 border-b theme-border text-xs font-bold text-blue-600 bg-blue-50" id="navRole">Role: User</div>
+                            <button onclick="handleLogout()" class="w-full text-left px-4 py-3 text-sm text-red-500 font-bold hover:bg-red-50 transition-colors"><i class="fa-solid fa-sign-out-alt mr-2"></i> Keluar Sistem</button>
+                        </div>
+                    </div>
+                </div>
+            </nav>
+
+            <main class="flex-1 overflow-y-auto p-4 md:p-6 hide-scrollbar w-full">
+                
+                <div id="view-users" class="view-section hidden fade-in w-full">
+                    <div class="bg-white rounded-2xl shadow-sm border border-blue-100 theme-card p-6">
+                        <div class="flex justify-between items-center mb-6">
+                            <h3 class="font-black text-xl text-blue-900 theme-text"><i class="fa-solid fa-users-gear text-blue-500 mr-2"></i> Daftar Karyawan</h3>
+                            <button onclick="loadUsersManagement()" class="text-blue-500 font-bold text-sm hover:underline"><i class="fa-solid fa-rotate mr-1"></i> Refresh</button>
+                        </div>
+                        <div class="overflow-x-auto border border-blue-100 rounded-xl theme-border">
+                            <table class="w-full text-sm text-left">
+                                <thead class="text-xs text-blue-800 uppercase bg-blue-50 theme-bg-muted theme-text">
+                                    <tr><th class="px-5 py-4 font-bold">Username</th><th class="px-5 py-4 font-bold text-center">Status</th><th class="px-5 py-4 font-bold text-center">Aksi Master</th></tr>
+                                </thead>
+                                <tbody id="userTableBody" class="divide-y divide-blue-50 theme-divide"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-dashboard" class="view-section fade-in w-full">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 bg-white p-5 rounded-2xl shadow-sm border border-blue-100 theme-card gap-4">
+                        <div>
+                            <h3 class="font-bold text-blue-900 theme-text"><i class="fa-solid fa-bolt text-amber-500 mr-2"></i> Sinkronisasi Cloud</h3>
+                            <p class="text-xs text-blue-500 mt-1 theme-text-muted">Update seluruh status resi 'Proses' ke data kurir terbaru secara masal.</p>
+                        </div>
+                        <button onclick="syncUniversalData()" class="bg-blue-600 text-white px-6 py-3 rounded-xl text-sm font-bold shadow-lg hover:shadow-xl hover:bg-blue-700 w-full md:w-auto transition-all transform hover:-translate-y-0.5">
+                            <i class="fa-solid fa-rotate mr-2" id="syncGlobalIcon"></i> Sync Semua Sekarang
+                        </button>
+                    </div>
+
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-blue-100 theme-card hover:shadow-md transition-shadow">
+                            <p class="text-blue-600 font-bold text-xs uppercase mb-2 theme-text-muted">Total Harian</p>
+                            <h3 class="text-3xl font-black text-blue-900 theme-text" id="statTotal">0</h3>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-blue-100 theme-card hover:shadow-md transition-shadow">
+                            <p class="text-emerald-600 font-bold text-xs uppercase mb-2">Terkirim</p>
+                            <h3 class="text-3xl font-black text-emerald-600" id="statDelivered">0</h3>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-blue-100 theme-card hover:shadow-md transition-shadow">
+                            <p class="text-amber-500 font-bold text-xs uppercase mb-2">Proses</p>
+                            <h3 class="text-3xl font-black text-amber-500" id="statProcess">0</h3>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-blue-100 theme-card hover:shadow-md transition-shadow">
+                            <p class="text-red-500 font-bold text-xs uppercase mb-2">Retur</p>
+                            <h3 class="text-3xl font-black text-red-500" id="statProblem">0</h3>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                        <div class="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-blue-100 theme-card flex flex-col">
+                            <div class="p-5 border-b theme-border"><h3 class="font-bold text-blue-900 theme-text">Histori Input Terakhir</h3></div>
+                            <div class="p-0 overflow-x-auto">
+                                <table class="w-full text-sm text-left">
+                                    <thead class="text-xs text-blue-800 uppercase bg-blue-50 theme-bg-muted theme-text">
+                                        <tr><th class="px-5 py-3">Resi</th><th class="px-5 py-3">Status Terkini</th></tr>
+                                    </thead>
+                                    <tbody id="dashRecentTable" class="divide-y divide-blue-50 theme-divide"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="bg-white p-5 rounded-2xl shadow-sm border border-blue-100 theme-card">
+                            <h3 class="font-bold text-blue-900 theme-text mb-4 text-center">Rasio Harian</h3>
+                            <div class="w-full h-56 relative"><canvas id="shippingChart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="view-expedition" class="view-section hidden fade-in w-full">
+                    <div class="bg-gradient-to-br from-blue-900 to-blue-800 p-6 rounded-2xl shadow-lg mb-6 theme-card text-white border border-blue-700/50">
+                        <h2 class="text-lg font-bold mb-4 drop-shadow-sm"><i class="fa-solid fa-keyboard mr-2"></i> Input Resi Baru</h2>
+                        <form id="colForm" class="flex flex-col md:flex-row gap-3">
+                            <input type="hidden" id="colCourierId"><input type="hidden" id="colCourierName"> 
+                            <input type="text" id="colAwb" placeholder="Ketik nomor resi..." class="w-full px-5 py-3 bg-white/10 border border-blue-400/30 rounded-xl outline-none focus:border-blue-300 uppercase font-bold text-white shadow-inner backdrop-blur-sm transition-all" required>
+                            <button type="submit" class="bg-blue-500 text-white font-bold px-8 py-3 rounded-xl hover:bg-blue-400 shadow-md flex-none transition-colors"><i class="fa-solid fa-plus md:mr-1"></i> <span class="inline">Simpan</span></button>
+                        </form>
+                    </div>
+
+                    <div class="bg-white rounded-2xl shadow-sm border border-blue-100 overflow-hidden theme-card mb-6">
+                        <div class="p-4 border-b border-blue-100 theme-border flex flex-col xl:flex-row justify-between gap-4 bg-blue-50/50 theme-bg-muted">
+                            
+                            <div class="flex gap-2 overflow-x-auto hide-scrollbar pb-1">
+                                <button onclick="filterTable('all')" class="filter-btn active bg-blue-900 text-white px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap shadow-sm transition-colors">Semua</button>
+                                <button onclick="filterTable('Delivered')" class="filter-btn bg-white text-blue-800 border border-blue-200 px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap theme-btn transition-colors hover:bg-blue-50">Terkirim</button>
+                                <button onclick="filterTable('Retur')" class="filter-btn bg-white text-blue-800 border border-blue-200 px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap theme-btn transition-colors hover:bg-blue-50">Retur</button>
+                                <button onclick="filterTable('Proses')" class="filter-btn bg-white text-blue-800 border border-blue-200 px-5 py-2 rounded-xl text-xs font-bold whitespace-nowrap theme-btn transition-colors hover:bg-blue-50">Diproses</button>
+                            </div>
+                            
+                            <div class="flex flex-col sm:flex-row gap-2">
+                                <input type="date" id="searchDateInput" onchange="searchAwbLive()" class="px-4 py-2 text-xs font-bold border border-blue-200 rounded-xl outline-none theme-input bg-white text-blue-800 focus:ring-2 focus:ring-blue-100 w-full sm:w-auto shadow-sm">
+                                
+                                <div class="relative w-full sm:w-auto">
+                                    <i class="fa-solid fa-search absolute left-3 top-1/2 transform -translate-y-1/2 text-blue-400 text-xs"></i>
+                                    <input type="text" id="searchAwbInput" onkeyup="searchAwbLive()" placeholder="Cari resi..." class="pl-8 pr-4 py-2 text-xs font-bold border border-blue-200 rounded-xl outline-none theme-input bg-white text-blue-800 focus:ring-2 focus:ring-blue-100 w-full shadow-sm">
+                                </div>
+                                
+                                <button onclick="syncAllResi()" class="text-blue-700 bg-white border border-blue-200 px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-50 theme-btn shadow-sm w-full sm:w-auto whitespace-nowrap"><i class="fa-solid fa-rotate mr-1"></i> Sync Data</button>
+                            </div>
+                        </div>
+                        
+                        <div class="overflow-x-auto w-full">
+                            <table class="w-full text-sm text-left whitespace-nowrap">
+                                <thead class="text-xs text-blue-800 uppercase bg-white theme-bg-muted theme-text border-b theme-border">
+                                    <tr><th class="px-5 py-4 font-bold">Nomor Resi</th><th class="px-5 py-4 font-bold">Status Lacak</th><th class="px-5 py-4 font-bold text-right">Aksi</th></tr>
+                                </thead>
+                                <tbody id="tableBodyCollection" class="divide-y divide-blue-50 theme-divide"></tbody>
+                            </table>
+                        </div>
+                        <div id="emptyState" class="p-12 text-center hidden">
+                            <i class="fa-solid fa-folder-open text-4xl text-blue-200 mb-3 theme-text-muted"></i>
+                            <h4 class="font-bold text-blue-900 theme-text text-lg">Data Kosong</h4>
+                            <p class="text-xs text-blue-500 mt-1 theme-text-muted">Silakan tambah resi baru atau ubah filter tanggal pencarian.</p>
+                        </div>
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <div id="trackModal" class="fixed inset-0 bg-blue-950/80 backdrop-blur-sm z-[150] flex items-end md:items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white w-full md:max-w-lg rounded-t-3xl md:rounded-2xl shadow-2xl p-6 relative theme-card max-h-[85vh] overflow-y-auto transform translate-y-full md:scale-95 transition-transform duration-300" id="modalContent">
+            <button onclick="closeModal()" class="absolute top-4 right-4 text-blue-400 hover:text-red-500 text-2xl hidden md:block transition-colors"><i class="fa-solid fa-times"></i></button>
+            <h3 class="text-xl font-black mb-1 theme-text text-blue-950 pr-8 tracking-wide" id="modalTitle">Detail Resi</h3>
+            <p class="text-xs font-bold text-blue-500 mb-6 uppercase tracking-wider" id="modalSubTitle">Ekspedisi</p>
+            
+            <div id="modalLoader" class="animate-pulse space-y-5 hidden my-8">
+                <div class="h-4 bg-blue-100 rounded w-full"></div>
+                <div class="h-4 bg-blue-100 rounded w-2/3"></div>
+                <div class="h-4 bg-blue-100 rounded w-5/6"></div>
+            </div>
+            
+            <div class="relative pl-6 border-l-2 border-blue-200 ml-2 mt-4" id="modalTimeline"></div>
+            
+            <button onclick="closeModal()" class="w-full bg-blue-100 text-blue-800 font-bold py-3.5 rounded-xl mt-8 md:hidden theme-btn shadow-sm">Tutup Layar Lacak</button>
+        </div>
+    </div>
+
+    <script src="assets/js/app.js"></script>
+</body>
+</html>
+

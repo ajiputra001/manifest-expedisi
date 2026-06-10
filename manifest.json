@@ -1,0 +1,22 @@
+{
+  "name": "RESI CENTER - Enterprise Cloud",
+  "short_name": "RESI CENTER",
+  "description": "Sistem Manajemen Tracking Resi Ekspedisi Multi-Kurir",
+  "start_url": "./index.html",
+  "display": "standalone",
+  "background_color": "#eff6ff",
+  "theme_color": "#1e3a8a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "assets/icons/icon-192x192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "assets/icons/icon-512x512.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

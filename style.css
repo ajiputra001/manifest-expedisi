@@ -1,0 +1,38 @@
+.fade-in { 
+    animation: fadeIn 0.4s ease-out forwards; 
+}
+@keyframes fadeIn { 
+    from { opacity: 0; transform: translateY(10px); } 
+    to { opacity: 1; transform: translateY(0); } 
+}
+
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+.hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* DARK MODE KUSTOM EKSKLUSIF */
+body.dark-mode { background-color: #081229 !important; color: #f1f5f9 !important; }
+body.dark-mode .theme-card { background-color: #0f1c3f !important; border-color: #1e336b !important; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.3); }
+body.dark-mode .theme-nav { background-color: rgba(15, 28, 63, 0.95) !important; backdrop-filter: blur(8px); }
+body.dark-mode .theme-bg-muted { background-color: #162650 !important; }
+body.dark-mode .theme-text { color: #f8fafc !important; }
+body.dark-mode .theme-text-muted { color: #94a3b8 !important; }
+body.dark-mode .theme-border, body.dark-mode .theme-divide { border-color: #1e336b !important; }
+body.dark-mode .theme-input { background-color: #081229 !important; color: #f8fafc !important; border-color: #1e336b !important; }
+body.dark-mode .theme-btn { background-color: #162650 !important; color: #e2e8f0 !important; border-color: #2e4a8f !important; }
+body.dark-mode .theme-sidebar-link:hover { background-color: #1e336b !important; color: #60a5fa !important;}
+body.dark-mode .active-nav { background-color: #2563eb !important; color: #ffffff !important; box-shadow: 0 4px 10px rgba(37, 99, 235, 0.3); }
+body.dark-mode .theme-hover-text:hover { color: #60a5fa !important; }
+
+/* BADGE EKSOTIS */
+.badge-sidebar-total { background-color: #dbeafe; color: #1d4ed8; }
+body.dark-mode .badge-sidebar-total { background-color: #1e3a8a; color: #93c5fd; border: 1px solid #1e40af;}
+
+.badge-sidebar-delivered { background-color: #d1fae5; color: #047857; }
+body.dark-mode .badge-sidebar-delivered { background-color: #064e3b; color: #6ee7b7; border: 1px solid #065f46;}
+
+.badge-sidebar-process { background-color: #fef3c7; color: #b45309; }
+body.dark-mode .badge-sidebar-process { background-color: #78350f; color: #fcd34d; border: 1px solid #92400e;}
+
+.badge-sidebar-problem { background-color: #fee2e2; color: #b91c1c; }
+body.dark-mode .badge-sidebar-problem { background-color: #7f1d1d; color: #fca5a5; border: 1px solid #991b1b;}
+
